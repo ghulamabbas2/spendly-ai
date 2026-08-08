@@ -31,6 +31,14 @@ Node >= 22.11.0 is required (see `engines` in `package.json`).
 - ESLint extends `@react-native` (`.eslintrc.js`).
 - Files use the `@format` docblock pragma to opt into Prettier formatting.
 
+## Live Docs (Context7)
+
+Before writing or modifying code that uses an external library, framework, SDK, or CLI — including React Native, React, React Navigation, Supabase (client + Edge Functions), Zod, and Jest — pull the current documentation through the Context7 MCP first. Do not rely on training data for API signatures, configuration, or version-specific behavior; verify them against Context7.
+
+- Start with `resolve-library-id` (unless given an exact `/org/project` ID), then `query-docs` scoped to a single concept. Split multi-concept questions into separate `query-docs` calls.
+- If Context7 has no entry for a library, say so explicitly before proceeding, then fall back to other sources.
+- This applies even to well-known libraries — recent releases may have changed the API.
+
 ## Doc Convention
 
 Whenever a new file is created in `/docs`, add it to the **Project Docs** section below with one line covering what it contains and when to read it.
