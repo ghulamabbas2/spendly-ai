@@ -30,3 +30,28 @@ Node >= 22.11.0 is required (see `engines` in `package.json`).
 - Prettier config (`.prettierrc.js`): single quotes, trailing commas, no bracket spacing, arrow parens avoided.
 - ESLint extends `@react-native` (`.eslintrc.js`).
 - Files use the `@format` docblock pragma to opt into Prettier formatting.
+
+## Live Docs (Context7)
+
+Before writing or modifying code that uses an external library, framework, SDK, or CLI — including React Native, React, React Navigation, Supabase (client + Edge Functions), Zod, and Jest — pull the current documentation through the Context7 MCP first. Do not rely on training data for API signatures, configuration, or version-specific behavior; verify them against Context7.
+
+- Start with `resolve-library-id` (unless given an exact `/org/project` ID), then `query-docs` scoped to a single concept. Split multi-concept questions into separate `query-docs` calls.
+- If Context7 has no entry for a library, say so explicitly before proceeding, then fall back to other sources.
+- This applies even to well-known libraries — recent releases may have changed the API.
+
+## Doc Convention
+
+Whenever a new file is created in `/docs`, add it to the **Project Docs** section below with one line covering what it contains and when to read it.
+
+### Project Docs
+
+- [`docs/architecture.md`](docs/architecture.md) — folder structure, naming conventions, state management, and the data-flow rules (screens → hooks → services → Supabase/Claude). Read before adding files or wiring up data access.
+- [`docs/design-system.md`](docs/design-system.md) — foundational design tokens (color, type, spacing, etc.) extracted from the prototype. Read when styling components or defining shared visual values.
+- [`docs/ui.md`](docs/ui.md) — screen-by-screen and component-by-component UI spec, referencing tokens from `design-system.md`. Read when building or laying out screens and components.
+- [`docs/database.md`](docs/database.md) — Supabase/Postgres schema (`profiles`, `expenses`, `categories`), RLS policies, indexes, and default-category seeding. Read when working with data models, queries, or the service layer.
+- [`docs/auth.md`](docs/auth.md) — Supabase email/password auth, session handling/refresh, session-based root navigation, and DB-enforced identity via RLS. Read when working on auth flows, session state, or navigation gating.
+- [`docs/data.md`](docs/data.md) — data-access pattern: service layer in `src/services`, the "return typed data or throws" contract, screens handling loading/error, and AI calls routed through a Supabase Edge Function (never Anthropic directly). Read when writing services, data fetching, or AI integration.
+- [`docs/coding-standards.md`](docs/coding-standards.md) — TypeScript strict mode, Prettier/ESLint, import ordering, typed function components, async/await, error handling, and component/hook/helper structure. Read before writing or reviewing code.
+- [`docs/errors-and-validation.md`](docs/errors-and-validation.md) — Zod validation (shared schemas in `src/lib/validation`), expected failures as typed inline results vs. unexpected errors caught at the screen with friendly messages, and required loading/error UI states for AI/network calls. Read when building forms, validation, or error handling.
+- [`docs/security.md`](docs/security.md) — secrets in gitignored `.env` (with `.env.example`), keeping the Claude API key server-side via the Edge Function, RLS-enforced data ownership, and minimal/disclosed financial data to the AI. Read when handling secrets, keys, or data shared with the AI.
+- [`docs/git-conventions.md`](docs/git-conventions.md) — Conventional Commits with imperative subjects, `type/feature` branch naming, and the branch → PR → human review → merge workflow (never straight to main). Read before committing, branching, or opening a PR.
