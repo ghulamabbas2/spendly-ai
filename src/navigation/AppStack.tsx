@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import AddExpenseScreen from '../screens/AddExpenseScreen';
+import CategoriesScreen from '../screens/CategoriesScreen';
 import ExpenseDetailScreen from '../screens/ExpenseDetailScreen';
 import TabNavigator from './TabNavigator';
 import type { AppStackParamList } from './types';
@@ -18,6 +19,7 @@ function AppStack() {
         options={{ presentation: 'modal' }}
       />
       <Stack.Screen name="ExpenseDetail" component={ExpenseDetailScreen} />
+      <Stack.Screen name="Categories" component={CategoriesScreen} />
     </Stack.Navigator>
   );
 }
