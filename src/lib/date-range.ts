@@ -87,6 +87,13 @@ export function formatShortDate(dateString: string): string {
   return SHORT_DATE_FORMATTER.format(new Date(dateString));
 }
 
+// Parse a `YYYY-MM-DD` string into a local Date (midnight local time), avoiding the
+// UTC interpretation `new Date('YYYY-MM-DD')` applies, which can shift the day.
+export function fromDateString(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 const LONG_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
   month: 'short',
   day: 'numeric',
@@ -95,6 +102,10 @@ const LONG_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
 
 export function formatLongDate(date: Date): string {
   return LONG_DATE_FORMATTER.format(date);
+}
+
+export function formatLongDateString(dateString: string): string {
+  return LONG_DATE_FORMATTER.format(fromDateString(dateString));
 }
 
 // Mon-first weeks covering the given month, with `null` for leading/trailing blanks.

@@ -1,7 +1,8 @@
 import { MaterialIcons } from '@react-native-vector-icons/material-icons';
-import { useNavigation } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,10 +10,10 @@ import CategoryPickerSheet from '../components/CategoryPickerSheet';
 import DatePickerModal from '../components/DatePickerModal';
 import { useCategories } from '../hooks/use-categories';
 import { hexToRgba } from '../lib/color';
-import { formatLongDate, toDateString } from '../lib/date-range';
+import { formatLongDate, fromDateString, toDateString } from '../lib/date-range';
 import { toMaterialIconName } from '../lib/icon-name';
 import { expenseInputSchema } from '../lib/validation/expense-schema';
-import { createExpense } from '../services/expenses-service';
+import { createExpense, getExpenseById, updateExpense } from '../services/expenses-service';
 import type { AppStackParamList } from '../navigation/types';
 
 type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
@@ -28,8 +29,12 @@ function sanitizeAmountInput(text: string): string {
 
 function AddExpenseScreen() {
   const navigation = useNavigation<AddExpenseNavigationProp>();
+  const route = useRoute<RouteProp<AppStackParamList, 'AddExpense'>>();
   const insets = useSafeAreaInsets();
   const { categories } = useCategories();
+
+  const expenseId = route.params?.expenseId;
+  const isEditing = !!expenseId;
 
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -41,6 +46,29 @@ function AddExpenseScreen() {
   const [amountError, setAmountError] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!expenseId) return;
+    let active = true;
+
+    (async () => {
+      try {
+        const expense = await getExpenseById(expenseId);
+        if (!active) return;
+        setAmount(String(expense.amount));
+        setCategoryId(expense.category_id);
+        setNote(expense.note ?? '');
+        setDate(fromDateString(expense.date));
+      } catch (e) {
+        console.error(e);
+        if (active) setFormError('Couldn’t load this expense. Please try again.');
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [expenseId]);
 
   const selectedCategory = categories.find(category => category.id === categoryId) ?? null;
   const canSave = Number(amount) > 0 && !!categoryId && !submitting;
@@ -69,7 +97,11 @@ function AddExpenseScreen() {
 
     try {
       setSubmitting(true);
-      await createExpense(result.data);
+      if (isEditing) {
+        await updateExpense(expenseId, result.data);
+      } else {
+        await createExpense(result.data);
+      }
       navigation.goBack();
     } catch (e) {
       console.error(e);
@@ -96,7 +128,7 @@ function AddExpenseScreen() {
         keyboardShouldPersistTaps="handled">
         <View style={styles.handle} />
         <View style={styles.headerRow}>
-          <Text style={styles.title}>Add Expense</Text>
+          <Text style={styles.title}>{isEditing ? 'Edit Expense' : 'Add Expense'}</Text>
           <Pressable
             style={styles.closeButton}
             onPress={() => navigation.goBack()}
@@ -193,7 +225,7 @@ function AddExpenseScreen() {
           accessibilityRole="button"
           accessibilityLabel="Save expense">
           <Text style={[styles.saveLabel, !canSave && styles.saveLabelDisabled]}>
-            {submitting ? 'Saving…' : 'Add expense'}
+            {submitting ? 'Saving…' : isEditing ? 'Save changes' : 'Add expense'}
           </Text>
         </Pressable>
       </ScrollView>
