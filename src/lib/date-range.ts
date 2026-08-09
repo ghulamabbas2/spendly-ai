@@ -69,8 +69,13 @@ export function formatPeriodLabel(period: Period): string {
 }
 
 // Postgres `date` columns are compared as plain YYYY-MM-DD strings.
+// Built from local Y/M/D directly — going through `toISOString()` (UTC) would
+// shift the date by a day in timezones ahead of UTC.
 export function toDateString(date: Date): string {
-  return startOfDay(date).toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 const SHORT_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
@@ -80,4 +85,37 @@ const SHORT_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
 
 export function formatShortDate(dateString: string): string {
   return SHORT_DATE_FORMATTER.format(new Date(dateString));
+}
+
+const LONG_DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+export function formatLongDate(date: Date): string {
+  return LONG_DATE_FORMATTER.format(date);
+}
+
+// Mon-first weeks covering the given month, with `null` for leading/trailing blanks.
+export function getCalendarGrid(monthDate: Date): (Date | null)[][] {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const leadingBlanks = (firstDay.getDay() + 6) % 7;
+
+  const days: (Date | null)[] = [
+    ...Array.from({ length: leadingBlanks }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1)),
+  ];
+  while (days.length % 7 !== 0) {
+    days.push(null);
+  }
+
+  const weeks: (Date | null)[][] = [];
+  for (let i = 0; i < days.length; i += 7) {
+    weeks.push(days.slice(i, i + 7));
+  }
+  return weeks;
 }
