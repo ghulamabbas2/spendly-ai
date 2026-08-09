@@ -12,7 +12,7 @@ export type TabParamList = {
 
 export type AppStackParamList = {
   Tabs: undefined;
-  AddExpense: undefined;
+  AddExpense: { expenseId?: string } | undefined;
   ExpenseDetail: { expenseId: string };
   Categories: undefined;
 };

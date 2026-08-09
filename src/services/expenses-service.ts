@@ -37,6 +37,17 @@ export async function countExpensesByCategory(categoryId: string): Promise<numbe
   return count ?? 0;
 }
 
+export async function getExpenseById(id: string): Promise<Expense> {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) throw new Error(`Failed to load expense: ${error.message}`);
+  return data as Expense;
+}
+
 export async function createExpense(input: ExpenseInput): Promise<Expense> {
   const {
     data: { user },
@@ -59,4 +70,27 @@ export async function createExpense(input: ExpenseInput): Promise<Expense> {
 
   if (error) throw new Error(`Failed to create expense: ${error.message}`);
   return data as Expense;
+}
+
+export async function updateExpense(id: string, input: ExpenseInput): Promise<Expense> {
+  const { data, error } = await supabase
+    .from('expenses')
+    .update({
+      amount: input.amount,
+      category_id: input.categoryId,
+      note: input.note?.trim() || null,
+      date: input.date,
+    })
+    .eq('id', id)
+    .select('*')
+    .single();
+
+  if (error) throw new Error(`Failed to update expense: ${error.message}`);
+  return data as Expense;
+}
+
+export async function deleteExpense(id: string): Promise<void> {
+  const { error } = await supabase.from('expenses').delete().eq('id', id);
+
+  if (error) throw new Error(`Failed to delete expense: ${error.message}`);
 }
