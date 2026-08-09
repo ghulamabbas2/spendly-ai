@@ -17,6 +17,7 @@ One row per user, keyed by the auth user id.
 | Column | Type | Notes |
 |---|---|---|
 | `id` | `uuid` PK | References `auth.users(id)` |
+| `full_name` | `text` | Nullable. Captured at signup from `auth.users.raw_user_meta_data ->> 'full_name'` (see `docs/auth.md`); `null` for accounts created before this column existed |
 | `created_at` | `timestamptz` | Default `now()` |
 
 ### `categories`

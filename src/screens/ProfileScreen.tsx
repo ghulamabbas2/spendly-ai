@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../hooks/use-auth';
+import { getInitials } from '../lib/initials';
 
 type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
@@ -20,10 +21,6 @@ const SETTINGS: SettingRow[] = [
   { icon: 'ios-share', label: 'Export data' },
   { icon: 'help', label: 'Help & support' },
 ];
-
-function getInitials(email: string): string {
-  return email.slice(0, 2).toUpperCase();
-}
 
 function ProfileScreen() {
   const { user, signOut } = useAuth();
@@ -50,9 +47,10 @@ function ProfileScreen() {
       {user ? (
         <View style={styles.identityCard}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarLabel}>{getInitials(user.email)}</Text>
+            <Text style={styles.avatarLabel}>{getInitials(user.fullName, user.email)}</Text>
           </View>
           <View style={styles.identityText}>
+            {user.fullName ? <Text style={styles.name}>{user.fullName}</Text> : null}
             <Text style={styles.email}>{user.email}</Text>
           </View>
           <MaterialIcons name="edit" size={22} color="#c2c7d0" />
@@ -142,6 +140,12 @@ const styles = StyleSheet.create({
   },
   identityText: {
     flex: 1,
+  },
+  name: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#16181c',
+    marginBottom: 2,
   },
   email: {
     fontSize: 13,

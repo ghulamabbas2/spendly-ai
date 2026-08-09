@@ -14,19 +14,38 @@ import {
 
 import AuthHeader from '../components/AuthHeader';
 import { useAuth } from '../hooks/use-auth';
+import { AuthServiceError } from '../services/auth-service';
 import { signUpSchema } from '../lib/validation/auth-schema';
 import type { AuthStackParamList } from '../navigation/types';
 
 type FieldErrors = {
+  fullName?: string[];
   email?: string[];
   password?: string[];
   confirmPassword?: string[];
 };
 
+function getSignUpErrorMessage(e: unknown): string {
+  const code = e instanceof AuthServiceError ? e.code : undefined;
+  switch (code) {
+    case 'user_already_exists':
+    case 'email_exists':
+      return 'That email is already in use. Try signing in instead.';
+    case 'weak_password':
+      return 'Choose a stronger password and try again.';
+    case 'over_email_send_rate_limit':
+    case 'over_request_rate_limit':
+      return 'Too many attempts right now. Please wait a bit and try again.';
+    default:
+      return 'Couldn’t create your account. Please try again.';
+  }
+}
+
 function SignUpScreen() {
   const { signUp } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,7 +57,7 @@ function SignUpScreen() {
   async function handleSignUp() {
     setFormError(null);
 
-    const result = signUpSchema.safeParse({ email, password, confirmPassword });
+    const result = signUpSchema.safeParse({ fullName, email, password, confirmPassword });
     if (!result.success) {
       setFieldErrors(result.error.flatten().fieldErrors);
       return;
@@ -50,11 +69,12 @@ function SignUpScreen() {
       const { needsEmailConfirmation: needsConfirmation } = await signUp(
         result.data.email,
         result.data.password,
+        result.data.fullName,
       );
       setNeedsEmailConfirmation(needsConfirmation);
     } catch (e) {
       console.error(e);
-      setFormError('Couldn’t create your account. That email may already be in use.');
+      setFormError(getSignUpErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
@@ -89,6 +109,21 @@ function SignUpScreen() {
 
         <View style={styles.card}>
           {formError ? <Text style={styles.formError}>{formError}</Text> : null}
+
+          <View style={styles.field}>
+            <TextInput
+              style={styles.input}
+              placeholder="Full name"
+              placeholderTextColor="#a2a8b4"
+              autoCapitalize="words"
+              autoComplete="name"
+              value={fullName}
+              onChangeText={setFullName}
+            />
+            {fieldErrors.fullName ? (
+              <Text style={styles.fieldError}>{fieldErrors.fullName[0]}</Text>
+            ) : null}
+          </View>
 
           <View style={styles.field}>
             <TextInput

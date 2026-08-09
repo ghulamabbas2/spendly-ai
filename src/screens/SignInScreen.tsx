@@ -14,6 +14,7 @@ import {
 
 import AuthHeader from '../components/AuthHeader';
 import { useAuth } from '../hooks/use-auth';
+import { AuthServiceError } from '../services/auth-service';
 import { signInSchema } from '../lib/validation/auth-schema';
 import type { AuthStackParamList } from '../navigation/types';
 
@@ -21,6 +22,18 @@ type FieldErrors = {
   email?: string[];
   password?: string[];
 };
+
+function getSignInErrorMessage(e: unknown): string {
+  const code = e instanceof AuthServiceError ? e.code : undefined;
+  switch (code) {
+    case 'email_not_confirmed':
+      return 'Confirm your email before signing in — check your inbox for the link.';
+    case 'over_request_rate_limit':
+      return 'Too many attempts right now. Please wait a bit and try again.';
+    default:
+      return 'Couldn’t sign in. Check your email and password.';
+  }
+}
 
 function SignInScreen() {
   const { signIn } = useAuth();
@@ -47,7 +60,7 @@ function SignInScreen() {
       await signIn(result.data.email, result.data.password);
     } catch (e) {
       console.error(e);
-      setFormError('Couldn’t sign in. Check your email and password.');
+      setFormError(getSignInErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
