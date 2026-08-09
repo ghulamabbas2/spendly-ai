@@ -1,0 +1,17 @@
+# QA Scenario 6: from the Category Picker, tap "Manage categories" → picker
+# closes and navigates to the Categories screen; the Add Expense sheet is also
+# dismissed (matching the "no save" close behavior).
+appId: com.spendlyai
+---
+- launchApp
+- assertVisible: 'Recent transactions'
+- tapOn:
+    point: '50%,92%'
+- assertVisible: 'Add Expense'
+- tapOn: 'Select category'
+- assertVisible: 'Choose category'
+- tapOn: 'Manage categories'
+# Lands on the Categories screen; the Add Expense sheet is gone.
+- assertVisible: 'Categories'
+- assertNotVisible: 'Add Expense'
+- assertVisible: 'Add category'

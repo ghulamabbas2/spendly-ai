@@ -16,7 +16,7 @@ function AppStack() {
       <Stack.Screen
         name="AddExpense"
         component={AddExpenseScreen}
-        options={{ presentation: 'modal' }}
+        options={{ presentation: 'transparentModal', animation: 'fade' }}
       />
       <Stack.Screen name="ExpenseDetail" component={ExpenseDetailScreen} />
       <Stack.Screen name="Categories" component={CategoriesScreen} />

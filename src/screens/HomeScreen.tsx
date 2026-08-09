@@ -1,9 +1,9 @@
 import type { CompositeNavigationProp } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@react-native-vector-icons/material-icons';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
@@ -61,6 +61,13 @@ function HomeScreen() {
     recentTransactions,
     hasAnyExpenses,
   } = useHomeDashboard();
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>

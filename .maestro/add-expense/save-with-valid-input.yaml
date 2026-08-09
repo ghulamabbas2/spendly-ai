@@ -1,0 +1,19 @@
+# QA Scenario 1: FAB → enter 42.50, pick a category, keep default date, Save →
+# sheet closes, Home shows the new expense at the top of Recent transactions.
+appId: com.spendlyai
+---
+- launchApp
+- assertVisible: 'Recent transactions'
+- tapOn:
+    point: '50%,92%'
+- assertVisible: 'Add Expense'
+- tapOn: '0.00'
+- inputText: '42.50'
+- tapOn: 'Select category'
+- assertVisible: 'Choose category'
+- tapOn: 'Food'
+- hideKeyboard
+- assertVisible: 'Save expense'
+- tapOn: 'Save expense'
+- assertVisible: 'Recent transactions'
+- assertVisible: 'Food'

@@ -1,0 +1,16 @@
+# QA Scenario 5: tap the date row → Calendar opens on the current month; pick a
+# different day → calendar closes and the date row updates immediately.
+# Today is 2026-08-09, so day 15 is a different day in the same month.
+appId: com.spendlyai
+---
+- launchApp
+- assertVisible: 'Recent transactions'
+- tapOn:
+    point: '50%,92%'
+- assertVisible: 'Add Expense'
+- tapOn: 'Select date'
+- assertVisible: 'August 2026'
+- tapOn: '15'
+# Calendar closes and the date row shows the newly picked date.
+- assertNotVisible: 'August 2026'
+- assertVisible: 'Aug 15, 2026'
