@@ -1,13 +1,18 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 import * as authService from '../services/auth-service';
+import { getProfile } from '../services/profiles-service';
 import type { AuthUser, Session } from '../types/auth';
 
 type AuthContextValue = {
   session: Session | null;
   user: AuthUser | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ needsEmailConfirmation: boolean }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+  ) => Promise<{ needsEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -21,6 +26,8 @@ type Props = {
 export function AuthProvider({ children }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  // undefined = not fetched yet (fall back to session metadata); the `profiles` row is canonical once loaded.
+  const [profileFullName, setProfileFullName] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     const unsubscribe = authService.subscribeToAuthChanges(nextSession => {
@@ -30,16 +37,45 @@ export function AuthProvider({ children }: Props) {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (!session) {
+      setProfileFullName(undefined);
+      return;
+    }
+
+    let active = true;
+    (async () => {
+      try {
+        const profile = await getProfile(session.user.id);
+        if (active) setProfileFullName(profile.fullName);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [session]);
+
+  const user = useMemo<AuthUser | null>(() => {
+    if (!session) return null;
+    return {
+      ...session.user,
+      fullName: profileFullName !== undefined ? profileFullName : session.user.fullName,
+    };
+  }, [session, profileFullName]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
-      user: session?.user ?? null,
+      user,
       loading,
       signUp: authService.signUp,
       signIn: authService.signIn,
       signOut: authService.signOut,
     }),
-    [session, loading],
+    [session, user, loading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
