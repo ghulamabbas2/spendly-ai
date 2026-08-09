@@ -6,5 +6,6 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest/setup.js'],
   moduleNameMapper: {
     '\\.ttf$': '<rootDir>/jest/font-mock.js',
+    '^@env$': '<rootDir>/jest/env-mock.js',
   },
 };

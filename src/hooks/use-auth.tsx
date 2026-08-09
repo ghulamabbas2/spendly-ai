@@ -1,11 +1,15 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
-import type { Session } from '../types/auth';
+import * as authService from '../services/auth-service';
+import type { AuthUser, Session } from '../types/auth';
 
 type AuthContextValue = {
   session: Session | null;
-  signIn: () => void;
-  signOut: () => void;
+  user: AuthUser | null;
+  loading: boolean;
+  signUp: (email: string, password: string) => Promise<{ needsEmailConfirmation: boolean }>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -16,14 +20,26 @@ type Props = {
 
 export function AuthProvider({ children }: Props) {
   const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = authService.subscribeToAuthChanges(nextSession => {
+      setSession(nextSession);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
-      signIn: () => setSession({ userId: 'stub-user' }),
-      signOut: () => setSession(null),
+      user: session?.user ?? null,
+      loading,
+      signUp: authService.signUp,
+      signIn: authService.signIn,
+      signOut: authService.signOut,
     }),
-    [session],
+    [session, loading],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

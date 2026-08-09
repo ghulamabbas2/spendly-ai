@@ -1,3 +1,8 @@
+export type AuthUser = {
+  id: string;
+  email: string;
+};
+
 export type Session = {
-  userId: string;
+  user: AuthUser;
 };
