@@ -25,3 +25,13 @@ export async function getRecentExpenses(limit: number): Promise<Expense[]> {
   if (error) throw new Error(`Failed to load recent expenses: ${error.message}`);
   return data as Expense[];
 }
+
+export async function countExpensesByCategory(categoryId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('expenses')
+    .select('id', { count: 'exact', head: true })
+    .eq('category_id', categoryId);
+
+  if (error) throw new Error(`Failed to count expenses: ${error.message}`);
+  return count ?? 0;
+}

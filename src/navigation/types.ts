@@ -14,4 +14,5 @@ export type AppStackParamList = {
   Tabs: undefined;
   AddExpense: undefined;
   ExpenseDetail: { expenseId: string };
+  Categories: undefined;
 };

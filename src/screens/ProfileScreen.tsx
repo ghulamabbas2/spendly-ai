@@ -1,31 +1,50 @@
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@react-native-vector-icons/material-icons';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../hooks/use-auth';
+import { useCategories } from '../hooks/use-categories';
 import { getInitials } from '../lib/initials';
+import type { AppStackParamList, TabParamList } from '../navigation/types';
 
 type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+
+type ProfileScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, 'Profile'>,
+  NativeStackNavigationProp<AppStackParamList>
+>;
 
 type SettingRow = {
   icon: IconName;
   label: string;
   value?: string;
+  onPress?: () => void;
 };
-
-const SETTINGS: SettingRow[] = [
-  { icon: 'category', label: 'Manage categories' },
-  { icon: 'account-balance-wallet', label: 'Currency', value: 'USD $' },
-  { icon: 'notifications', label: 'Notifications', value: 'On' },
-  { icon: 'dark-mode', label: 'Appearance', value: 'Light' },
-  { icon: 'ios-share', label: 'Export data' },
-  { icon: 'help', label: 'Help & support' },
-];
 
 function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
+  const { categories } = useCategories();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const settings: SettingRow[] = [
+    {
+      icon: 'category',
+      label: 'Manage categories',
+      value: `${categories.length}`,
+      onPress: () => navigation.navigate('Categories'),
+    },
+    { icon: 'account-balance-wallet', label: 'Currency', value: 'USD $' },
+    { icon: 'notifications', label: 'Notifications', value: 'On' },
+    { icon: 'dark-mode', label: 'Appearance', value: 'Light' },
+    { icon: 'ios-share', label: 'Export data' },
+    { icon: 'help', label: 'Help & support' },
+  ];
 
   async function handleSignOut() {
     try {
@@ -58,10 +77,12 @@ function ProfileScreen() {
       ) : null}
 
       <View style={styles.settingsCard}>
-        {SETTINGS.map((setting, index) => (
+        {settings.map((setting, index) => (
           <Pressable
             key={setting.label}
             style={[styles.settingRow, index > 0 && styles.settingRowDivider]}
+            onPress={setting.onPress}
+            disabled={!setting.onPress}
             accessibilityRole="button"
             accessibilityLabel={setting.label}>
             <View style={styles.settingIconChip}>
