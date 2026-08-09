@@ -1,0 +1,18 @@
+# QA Scenario 4: tap the category row → Category Picker opens showing categories
+# in a grid; tap one → returns to the Add Expense sheet with it selected.
+appId: com.spendlyai
+---
+- launchApp
+- assertVisible: 'Recent transactions'
+- tapOn:
+    point: '50%,92%'
+- assertVisible: 'Add Expense'
+- tapOn: 'Select category'
+- assertVisible: 'Choose category'
+- assertVisible: 'Transport'
+- assertVisible: 'Shopping'
+- tapOn: 'Transport'
+# Picker closes, back on the Add Expense sheet with Transport selected.
+- assertVisible: 'Add Expense'
+- assertNotVisible: 'Choose category'
+- assertVisible: 'Transport'

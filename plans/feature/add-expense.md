@@ -54,7 +54,7 @@ Goal: a working Add Expense flow — FAB → modal sheet → validated save → 
 ## QA Scenarios
 
 - Tap the FAB → Add Expense sheet opens; enter amount `42.50`, pick a category, leave note blank, keep default date (today), tap Save → sheet closes, Home shows the new expense at the top of Recent Transactions with the category name as title and correct amount.
-- On the Add Expense sheet, tap Save with no amount and no category → inline errors appear under both fields ("Amount must be greater than zero", "Pick a category"); nothing is saved, sheet stays open.
+- On the Add Expense sheet with no amount and no category, the Save ("Add expense") button is disabled/greyed out — it cannot be tapped, so nothing is saved and the sheet stays open. (Validation via `expenseInputSchema` still runs on Save once the button is enabled; the inline field errors are the friendly-message path for an otherwise-submittable form.)
 - Enter a negative or zero amount (e.g. `0` or blocked via input filtering) → Save stays disabled/greyed out until a positive amount is entered.
 - Tap the category row → Category Picker opens showing all categories in a 2-column grid; tap one → returns to the Add Expense sheet with it selected (colored icon + name shown).
 - Tap the date row → Calendar opens defaulting to the current month with today highlighted; pick a different day → calendar closes and the date row updates immediately.

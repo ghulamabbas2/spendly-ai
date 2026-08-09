@@ -1,0 +1,16 @@
+# QA Scenario 2: with no amount and no category, the Save ("Add expense") button
+# is disabled/greyed out — it cannot be tapped, nothing is saved, sheet stays open.
+appId: com.spendlyai
+---
+- launchApp
+- assertVisible: 'Recent transactions'
+- tapOn:
+    point: '50%,92%'
+- assertVisible: 'Add Expense'
+- assertVisible: 'Select category' # no category chosen
+# Save button is present but disabled (accessibilityState.disabled → enabled:false).
+- assertVisible:
+    text: 'Save expense'
+    enabled: false
+# Sheet is still open and nothing was saved.
+- assertVisible: 'Add Expense'

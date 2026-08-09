@@ -1,0 +1,21 @@
+# QA Scenario 3: with no positive amount, Save stays disabled/greyed out; a
+# disabled Save must not dismiss the sheet. Once a positive amount is entered,
+# Save works. Category is selected first so only the amount gates Save.
+appId: com.spendlyai
+---
+- launchApp
+- assertVisible: 'Recent transactions'
+- tapOn:
+    point: '50%,92%'
+- assertVisible: 'Add Expense'
+- tapOn: 'Select category'
+- tapOn: 'Food'
+# Amount still empty → Save disabled → tapping it must leave the sheet open.
+- tapOn: 'Save expense'
+- assertVisible: 'Add Expense'
+# Enter a positive amount → Save becomes enabled and saves.
+- tapOn: '0.00'
+- inputText: '25'
+- hideKeyboard
+- tapOn: 'Save expense'
+- assertVisible: 'Recent transactions'

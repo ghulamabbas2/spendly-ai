@@ -43,7 +43,10 @@ function CategoryPickerSheet({
               <Pressable
                 key={category.id}
                 style={[styles.option, optionStyle]}
-                onPress={() => onSelect(category.id)}
+                onPress={() => {
+                  onSelect(category.id);
+                  onClose();
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={category.name}>
                 <View
