@@ -39,6 +39,14 @@ Before writing or modifying code that uses an external library, framework, SDK, 
 - If Context7 has no entry for a library, say so explicitly before proceeding, then fall back to other sources.
 - This applies even to well-known libraries — recent releases may have changed the API.
 
+## Design Prototype (Claude Design)
+
+`docs/ui.md` links a **Claude Design** prototype (`https://claude.ai/design/p/...`) — the authoritative visual source for every screen and component. Before building or styling any screen, component, or navigation UI:
+
+- Use the `DesignSync` tool (`get_project` / `list_files` / `get_file`) against that project to read the actual prototype markup — exact colors, gradients, spacing, icon names, and layout — not just the token summaries in `docs/design-system.md` and `docs/ui.md`. Those docs are a distilled reference; the prototype file (`Spendly AI.dc.html`) is the ground truth and can contain details (e.g. exact gap widths, gradients, real icon names) the summaries omit.
+- `WebFetch` cannot reach `claude.ai/design` links (403 — authenticated). Do not try it for this URL; go straight to `DesignSync`.
+- Match the corresponding prototype screen precisely — layout, spacing, colors, gradients, and icons — rather than approximating from tokens alone.
+
 ## Doc Convention
 
 Whenever a new file is created in `/docs`, add it to the **Project Docs** section below with one line covering what it contains and when to read it.
