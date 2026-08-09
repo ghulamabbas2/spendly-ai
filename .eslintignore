@@ -1,0 +1,2 @@
+# Supabase Edge Functions run on Deno, not React Native — lint them with Deno, not the RN ESLint config.
+supabase/functions/
