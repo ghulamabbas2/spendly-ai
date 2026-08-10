@@ -28,9 +28,36 @@ env:
   VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || 1000 }}
 
 jobs:
+  verify:
+    name: Lint, typecheck & test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
   release:
     name: Build and upload to internal track
     runs-on: ubuntu-latest
+    # Never ship a build that fails lint/type/test.
+    needs: verify
     steps:
       - name: Checkout
         uses: actions/checkout@v4
