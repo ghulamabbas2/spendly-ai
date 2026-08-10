@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import BootSplash from 'react-native-bootsplash';
 
 import { useAuth } from '../hooks/use-auth';
 import AppStack from './AppStack';
@@ -7,6 +8,12 @@ import AuthStack from './AuthStack';
 
 function RootNavigator() {
   const { session, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      BootSplash.hide({ fade: true });
+    }
+  }, [loading]);
 
   if (loading) {
     return (

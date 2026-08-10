@@ -1,0 +1,107 @@
+name: Android release (internal)
+
+# Runs on merge to main. Builds the signed AAB for ALL ABIs (real testers must
+# get a working app on any device) and uploads it to the Play Console INTERNAL
+# TESTING track via the Play Developer API using a service account.
+#
+# This workflow NEVER publishes to production. Promotion from internal testing to
+# production is always a manual step by a human in the Play Console.
+
+on:
+  push:
+    branches: [main]
+
+# Never run two releases at once, and never cancel an in-flight upload.
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PLAY_PACKAGE_NAME: com.spendlyai
+  # versionCode must be strictly greater than any code already on any track.
+  # github.run_number is monotonic; the offset keeps CI codes above the
+  # manually-uploaded bootstrap build (versionCode 1). Override via the
+  # VERSION_CODE_OFFSET repository variable if needed.
+  VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || 1000 }}
+
+jobs:
+  release:
+    name: Build and upload to internal track
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env file
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::SUPABASE_URL and/or SUPABASE_ANON_KEY repository variables are not set."
+            exit 1
+          fi
+          cat > .env <<EOF
+          SUPABASE_URL=$SUPABASE_URL
+          SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+          EOF
+
+      - name: Decode upload keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is not set."
+            exit 1
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.keystore"
+
+      - name: Compute version code
+        id: version
+        run: echo "code=$(( ${{ github.run_number }} + VERSION_CODE_OFFSET ))" >> "$GITHUB_OUTPUT"
+
+      - name: Build signed release AAB (all ABIs)
+        working-directory: android
+        env:
+          SPENDLY_UPLOAD_STORE_FILE: ${{ runner.temp }}/upload.keystore
+          SPENDLY_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          SPENDLY_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          SPENDLY_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          SPENDLY_VERSION_CODE: ${{ steps.version.outputs.code }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload to Play internal testing track
+        # Pinned to the v1.1.5 commit SHA (supply-chain hardening). Update the SHA
+        # and the version comment together when bumping.
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PLAY_PACKAGE_NAME }}
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+      - name: Remove decoded keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.keystore"

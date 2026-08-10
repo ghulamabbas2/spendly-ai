@@ -33,7 +33,15 @@ local.properties
 .cxx/
 *.keystore
 !debug.keystore
+*.jks
 .kotlin/
+
+# Release signing / Play deploy — never commit
+upload.keystore
+play-service-account*.json
+service-account*.json
+spendly-play-sa*.json
+signing.local.env
 
 # node.js
 #
