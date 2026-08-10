@@ -4,7 +4,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@react-native-vector-icons/material-icons';
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useAuth } from '../hooks/use-auth';
 import { useCategories } from '../hooks/use-categories';
@@ -42,7 +42,13 @@ function ProfileScreen() {
     { icon: 'account-balance-wallet', label: 'Currency', value: 'USD $' },
     { icon: 'notifications', label: 'Notifications', value: 'On' },
     { icon: 'dark-mode', label: 'Appearance', value: 'Light' },
-    { icon: 'ios-share', label: 'Export data' },
+    {
+      icon: 'privacy-tip',
+      label: 'Privacy policy',
+      onPress: () => {
+        Linking.openURL('https://www.termsfeed.com/live/8201db90-4047-4d37-8f75-3bafdccc0bbb');
+      },
+    },
     { icon: 'help', label: 'Help & support' },
   ];
 
