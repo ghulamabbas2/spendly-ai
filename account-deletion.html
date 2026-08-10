@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Delete Your Account &amp; Data — SpendlyAI</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f8;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5b5b5b;
+    --border: #e2e2e2;
+    --accent: #6c47ff;
+    --accent-hover: #5936e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --card: #1c1c1e;
+      --text: #f2f2f2;
+      --muted: #a3a3a3;
+      --border: #303032;
+      --accent: #8a6bff;
+      --accent-hover: #9d81ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    margin-top: 0;
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  h2 {
+    font-size: 1.1rem;
+    margin-top: 0;
+  }
+  ul {
+    padding-left: 20px;
+    margin: 8px 0;
+  }
+  li { margin-bottom: 6px; }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  .note {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  a { color: var(--accent); }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Delete Your Account &amp; Data</h1>
+  <p class="subtitle">SpendlyAI (Android app, package name <code>com.spendlyai</code>)</p>
+
+  <div class="card">
+    <h2>How to request deletion</h2>
+    <p>
+      SpendlyAI does not yet offer an in-app "Delete Account" button. To delete your
+      account and associated data, send a deletion request using the form below,
+      or email us directly at
+      <a href="mailto:haideralidev258@gmail.com">haideralidev258@gmail.com</a>
+      from the email address associated with your SpendlyAI account.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>What gets deleted</h2>
+    <p>When you request account deletion, we permanently delete:</p>
+    <ul>
+      <li>Your account (email and login credentials)</li>
+      <li>Your profile information (name)</li>
+      <li>Your expense records (amounts, notes, dates, categories)</li>
+      <li>Your custom spending categories</li>
+    </ul>
+    <p>We do not retain any of this data after deletion is processed, and it is not shared with any third party.</p>
+  </div>
+
+  <div class="card">
+    <h2>Timeframe</h2>
+    <p>Deletion requests are processed manually and completed within 30 days of receipt. You'll receive a confirmation email once your account and data have been deleted.</p>
+  </div>
+
+  <div class="card">
+    <h2>Request form</h2>
+    <form id="deleteForm">
+      <label for="email">Your account email</label>
+      <input type="email" id="email" required placeholder="you@example.com" />
+
+      <label for="details">Additional details (optional)</label>
+      <textarea id="details" placeholder="Anything that helps us find your account"></textarea>
+
+      <button type="submit">Send Deletion Request</button>
+      <p class="note">This opens your email app with a pre-filled message addressed to haideralidev258@gmail.com. Review it and hit send.</p>
+    </form>
+  </div>
+
+  <footer>SpendlyAI · Account &amp; Data Deletion</footer>
+</div>
+
+<script>
+  document.getElementById('deleteForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = document.getElementById('email').value.trim();
+    var details = document.getElementById('details').value.trim();
+    var subject = encodeURIComponent('SpendlyAI Account Deletion Request');
+    var bodyLines = [
+      'Please delete my SpendlyAI account and all associated data.',
+      '',
+      'Account email: ' + email,
+    ];
+    if (details) {
+      bodyLines.push('', 'Additional details: ' + details);
+    }
+    var body = encodeURIComponent(bodyLines.join('\n'));
+    window.location.href = 'mailto:haideralidev258@gmail.com?subject=' + subject + '&body=' + body;
+  });
+</script>
+</body>
+</html>
