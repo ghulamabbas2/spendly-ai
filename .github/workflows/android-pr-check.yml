@@ -1,0 +1,85 @@
+name: Android PR check
+
+# Proves the app compiles and produces a signed AAB. It NEVER uploads to Play.
+# To keep the native CMake/C++ compile fast, this check builds a single ABI
+# (arm64-v8a) — building all four ABIs would triple the native build time for
+# no benefit on a check that never ships. The release workflow builds all ABIs.
+
+on:
+  pull_request:
+    branches: [main]
+
+# One in-flight run per PR; newer pushes cancel older runs.
+concurrency:
+  group: android-pr-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build signed AAB (check only)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env file
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::SUPABASE_URL and/or SUPABASE_ANON_KEY repository variables are not set."
+            exit 1
+          fi
+          cat > .env <<EOF
+          SUPABASE_URL=$SUPABASE_URL
+          SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+          EOF
+
+      - name: Decode upload keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is not set."
+            exit 1
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.keystore"
+
+      - name: Build signed release AAB (arm64-v8a only)
+        working-directory: android
+        env:
+          # Restrict to one ABI — this is a compile+sign check, not a shippable artifact.
+          ORG_GRADLE_PROJECT_reactNativeArchitectures: arm64-v8a
+          SPENDLY_UPLOAD_STORE_FILE: ${{ runner.temp }}/upload.keystore
+          SPENDLY_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          SPENDLY_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          SPENDLY_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # Version code is irrelevant for a non-uploading check; keep it valid.
+          SPENDLY_VERSION_CODE: ${{ github.run_number }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Remove decoded keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.keystore"

@@ -72,6 +72,27 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+/**
+ * Release signing and versioning are driven entirely by environment variables so
+ * that nothing sensitive is committed. CI injects these from repository secrets;
+ * see docs/deployment.md and .env.example.
+ *
+ *  - SPENDLY_UPLOAD_STORE_FILE      absolute path to the decoded upload keystore
+ *  - SPENDLY_UPLOAD_STORE_PASSWORD  keystore password
+ *  - SPENDLY_UPLOAD_KEY_ALIAS       key alias inside the keystore
+ *  - SPENDLY_UPLOAD_KEY_PASSWORD    key password
+ *  - SPENDLY_VERSION_CODE           monotonically increasing integer (CI-supplied)
+ *  - SPENDLY_VERSION_NAME           human-facing version string
+ *
+ * When SPENDLY_UPLOAD_STORE_FILE is absent (e.g. a local `bundleRelease` without
+ * the upload key) the release build falls back to debug signing so local builds
+ * still work — such artifacts are NOT distributable.
+ */
+def uploadStoreFile = System.getenv("SPENDLY_UPLOAD_STORE_FILE")
+def hasReleaseSigning = uploadStoreFile != null && !uploadStoreFile.isEmpty()
+def spendlyVersionCode = (System.getenv("SPENDLY_VERSION_CODE") ?: "1").toInteger()
+def spendlyVersionName = System.getenv("SPENDLY_VERSION_NAME") ?: "1.0"
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -82,8 +103,8 @@ android {
         applicationId "com.spendlyai"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode spendlyVersionCode
+        versionName spendlyVersionName
     }
     signingConfigs {
         debug {
@@ -92,15 +113,25 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(uploadStoreFile)
+                storePassword System.getenv("SPENDLY_UPLOAD_STORE_PASSWORD")
+                keyAlias System.getenv("SPENDLY_UPLOAD_KEY_ALIAS")
+                keyPassword System.getenv("SPENDLY_UPLOAD_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Use the release upload key when its env vars are provided (CI and
+            // properly configured local builds); otherwise fall back to debug
+            // signing so a local `bundleRelease` still succeeds. Only artifacts
+            // signed with the upload key are distributable via Play.
+            signingConfig hasReleaseSigning ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
