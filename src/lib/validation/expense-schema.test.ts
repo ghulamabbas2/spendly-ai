@@ -15,6 +15,7 @@ describe('expenseInputSchema', () => {
   });
 
   it('parses valid input without an optional note', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { note, ...withoutNote } = validInput;
 
     const result = expenseInputSchema.safeParse(withoutNote);
